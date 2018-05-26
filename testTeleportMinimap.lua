@@ -214,7 +214,7 @@ function testTeleportMinimap.OnParticleDestroy(particle)
     end
 end
 
-function testTeleportMinimap.OnUpdate()
+function testTeleportMinimap.OnDraw()
 	if not Menu.IsEnabled(testTeleportMinimap.optionEnable) then return end
 	local myHero = Heroes.GetLocal()
 	
@@ -243,8 +243,9 @@ function testTeleportMinimap.OnUpdate()
 					MiniMap.AddIconByName(nil, "minimap_herocircle", tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["alphaChannel"], 0.1, 1000)
 					if Menu.IsEnabled(testTeleportMinimap.optionEnableWorldDraw) then 
 						local x, y = Renderer.WorldToScreen(tableParticle.position)
+						local specsize = 50 - math.floor(50 / 4)
 						Renderer.SetDrawColor(255, 255, 255, 255)
-						Renderer.DrawImage( GUIDB.Image('mini_' .. NPC.GetUnitName(tableParticle.ent)), x, y, 50, 50)
+						Renderer.DrawImage( GUIDB.Image('mini_' .. NPC.GetUnitName(tableParticle.ent)), x - math.ceil(specsize / 2), y - math.ceil(specsize / 2), specsize, specsize)
 					end
 					
 				else
@@ -252,8 +253,9 @@ function testTeleportMinimap.OnUpdate()
 					MiniMap.AddIconByName(nil, "minimap_enemyimage", tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["alphaChannel"], 0.1, 1000)
 					if Menu.IsEnabled(testTeleportMinimap.optionEnableWorldDraw) then 
 						local x, y = Renderer.WorldToScreen(tableParticle.position)
+						local specsize = 50 - math.floor(50 / 4)
 						Renderer.SetDrawColor(255, 255, 255, 255)
-						Renderer.DrawImage( GUIDB.Image('mini_' .. NPC.GetUnitName(entOwner)), x, y, 50, 50)
+						Renderer.DrawImage( GUIDB.Image('mini_' .. NPC.GetUnitName(entOwner)), x - math.ceil(specsize / 2), y - math.ceil(specsize / 2), specsize, specsize)
 					end
 				end
             end
