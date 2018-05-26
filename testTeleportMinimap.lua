@@ -1,6 +1,7 @@
 local testTeleportMinimap = {}
 
-testTeleportMinimap.optionEnable = Menu.AddOption({"TEST", "Minimap Teleport Info"}, "On/Off script.", "Shows teleport")
+testTeleportMinimap.optionEnable = Menu.AddOption({"TEST", "Minimap Teleport Info"}, "1. On/Off script.", "Shows teleport")
+testTeleportMinimap.optionEnableWorldDraw = Menu.AddOption({"TEST", "Minimap Teleport Info"}, "2. Enable world draw.", "")
 testTeleportMinimap.particleTable = {}
 testTeleportMinimap.rgbaTable = { }
 testTeleportMinimap.rgbaTable[0] = 
@@ -229,18 +230,31 @@ function testTeleportMinimap.OnUpdate()
 		else
 			if tableParticle.position and (tableParticle.name == "teleport_end" or tableParticle.name == "teleport_end_bots" or tableParticle.name == "furion_teleport_end") then 
 				if Entity.IsHero(tableParticle.ent) then
-					MiniMap.AddIconByName(nil, "minimap_ping_teleporting", tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["alphaChannel"], 0.1, 850)
+					MiniMap.AddIconByName(nil, "minimap_ping_teleporting", tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["alphaChannel"], 0.1, 1000)
+					
 				else
 					local entOwner = Entity.GetOwner(tableParticle.ent)
-					MiniMap.AddIconByName(nil, "minimap_ping_teleporting", tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["alphaChannel"], 0.1, 850)
+					MiniMap.AddIconByName(nil, "minimap_ping_teleporting", tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["alphaChannel"], 0.1, 1000)
 				end
 				
 			elseif tableParticle.position and (tableParticle.name == "teleport_start" or tableParticle.name == "teleport_start_bots"  or tableParticle.name == "furion_teleport") and Entity.IsDormant(tableParticle.ent) then
 				if Entity.IsHero(tableParticle.ent) then
-					MiniMap.AddIcon(nil, Hero.GetIcon(tableParticle.ent), tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["alphaChannel"], 0.1, 900)
+					--MiniMap.AddIcon(nil, Hero.GetIcon(tableParticle.ent), tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["alphaChannel"], 0.1, 900)
+					MiniMap.AddIconByName(nil, "minimap_herocircle", tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["alphaChannel"], 0.1, 1000)
+					if Menu.IsEnabled(testTeleportMinimap.optionEnableWorldDraw) then 
+						local x, y = Renderer.WorldToScreen(tableParticle.position)
+						Renderer.SetDrawColor(255, 255, 255, 255)
+						Renderer.DrawImage( GUIDB.Image('mini_' .. NPC.GetUnitName(tableParticle.ent)), x, y, 50, 50)
+					end
+					
 				else
 					local entOwner = Entity.GetOwner(tableParticle.ent)
 					MiniMap.AddIconByName(nil, "minimap_enemyimage", tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["alphaChannel"], 0.1, 1000)
+					if Menu.IsEnabled(testTeleportMinimap.optionEnableWorldDraw) then 
+						local x, y = Renderer.WorldToScreen(tableParticle.position)
+						Renderer.SetDrawColor(255, 255, 255, 255)
+						Renderer.DrawImage( GUIDB.Image('mini_' .. NPC.GetUnitName(entOwner)), x, y, 50, 50)
+					end
 				end
             end
 			
