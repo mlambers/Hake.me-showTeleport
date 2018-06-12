@@ -1,88 +1,74 @@
 local testTeleportMinimap = {}
-
+local funcFloor = math.floor
 testTeleportMinimap.optionEnable = Menu.AddOption({"TEST", "Minimap Teleport Info"}, "1. On/Off script.", "Shows teleport")
 testTeleportMinimap.optionEnableWorldDraw = Menu.AddOption({"TEST", "Minimap Teleport Info"}, "2. Enable world draw.", "")
 testTeleportMinimap.particleTable = {}
 testTeleportMinimap.rgbaTable = { }
+testTeleportMinimap.rgbaTable[-1] = 
+{
+	color = Vector(1.0, 1.0, 1.0)
+}
+
 testTeleportMinimap.rgbaTable[0] = 
 {
-	redChannel = 44,
-    greenChannel = 103,
-    blueChannel = 226,
-    alphaChannel = 255
+	color = Vector(0.20000001788139, 0.4588235616684, 1.0)
 }
 
 testTeleportMinimap.rgbaTable[1] = 
 {
-	redChannel = 102,
-    greenChannel = 255,
-    blueChannel = 191,
-    alphaChannel = 255
+	color = Vector(0.40000003576279, 1.0, 0.74901962280273)
 }
 
 testTeleportMinimap.rgbaTable[2] = 
 {
-	redChannel = 191,
-    greenChannel = 0,
-    blueChannel = 191,
-    alphaChannel = 255
+	color = Vector(0.74901962280273, 0.0, 0.74901962280273)
 }
 
 testTeleportMinimap.rgbaTable[3] = 
 {
-	redChannel = 243,
-    greenChannel = 240,
-    blueChannel = 11,
-    alphaChannel = 255
+	color = Vector(0.95294123888016, 0.94117653369904, 0.04313725605607)
 }
 
 testTeleportMinimap.rgbaTable[4] = 
 {
-	redChannel = 255,
-    greenChannel = 107,
-    blueChannel = 0,
-    alphaChannel = 255
+	color = Vector(1.0, 0.41960787773132, 0.0)
 }
 
 testTeleportMinimap.rgbaTable[5] = 
 {
-	redChannel = 254,
-    greenChannel = 134,
-    blueChannel = 194,
-    alphaChannel = 255
+	color = Vector(0.99607849121094, 0.52549022436142, 0.7607843875885)
 }
 
 testTeleportMinimap.rgbaTable[6] = 
 {
-	redChannel = 161,
-    greenChannel = 180,
-    blueChannel = 71,
-    alphaChannel = 255
+	color = Vector(0.63137257099152, 0.70588237047195, 0.27843138575554) 
 }
 
 testTeleportMinimap.rgbaTable[7] = 
 {
-	redChannel = 101,
-    greenChannel = 217,
-    blueChannel = 247,
-    alphaChannel = 255
+	color = Vector(0.39607846736908, 0.85098046064377, 0.96862751245499)
 }
 
 testTeleportMinimap.rgbaTable[8] = 
 {
-	redChannel = 0,
-    greenChannel = 131,
-    blueChannel = 33,
-    alphaChannel = 255
+	color = Vector(0.0, 0.5137255191803, 0.1294117718935)
 }		
 
 testTeleportMinimap.rgbaTable[9] = 
 {
-	redChannel = 164,
-    greenChannel = 105,
-    blueChannel = 0,
-    alphaChannel = 255
+	color = Vector(0.64313727617264, 0.41176474094391, 0.0)
 }
+
+function testTeleportMinimap.OnScriptLoad()
+	testTeleportMinimap.particleTable = {}
+end
+
+function testTeleportMinimap.OnGameStart()
+	testTeleportMinimap.particleTable = {}
+end
+function testTeleportMinimap.OnGameEnd()
+	testTeleportMinimap.particleTable = {}
+end
 
 function testTeleportMinimap.InsertParticleTable(particle)
     local myHero = Heroes.GetLocal()
@@ -141,7 +127,6 @@ function testTeleportMinimap.InsertParticleTable(particle)
 		return true
 	elseif particle.name == "teleport_start" and not Entity.IsSameTeam(Heroes.GetLocal(), particle.entityForModifiers) then
 
-    
 		local temptable = 
 		{
 			index = particle.index,
@@ -230,17 +215,31 @@ function testTeleportMinimap.OnDraw()
 		else
 			if tableParticle.position and (tableParticle.name == "teleport_end" or tableParticle.name == "teleport_end_bots" or tableParticle.name == "furion_teleport_end") then 
 				if Entity.IsHero(tableParticle.ent) then
-					MiniMap.AddIconByName(nil, "minimap_ping_teleporting", tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["alphaChannel"], 0.1, 1000)
+					local vectorColor = testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["color"]
+					local redChannel = funcFloor(vectorColor:GetX() * 255)
+					local greenChannel = funcFloor(vectorColor:GetY() * 255)
+					local blueChannel = funcFloor(vectorColor:GetZ() * 255)
+					local alphaChannel = 255
+					MiniMap.AddIconByName(nil, "minimap_ping_teleporting", tableParticle.position, redChannel, greenChannel, blueChannel, alphaChannel, 0.1, 1000)
 					
 				else
 					local entOwner = Entity.GetOwner(tableParticle.ent)
-					MiniMap.AddIconByName(nil, "minimap_ping_teleporting", tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["alphaChannel"], 0.1, 1000)
+					local vectorColor = testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["color"]
+					local redChannel = funcFloor(vectorColor:GetX() * 255)
+					local greenChannel = funcFloor(vectorColor:GetY() * 255)
+					local blueChannel = funcFloor(vectorColor:GetZ() * 255)
+					local alphaChannel = 255
+					MiniMap.AddIconByName(nil, "minimap_ping_teleporting", tableParticle.position, redChannel, greenChannel, blueChannel, alphaChannel, 0.1, 1000)
 				end
 				
 			elseif tableParticle.position and (tableParticle.name == "teleport_start" or tableParticle.name == "teleport_start_bots"  or tableParticle.name == "furion_teleport") and Entity.IsDormant(tableParticle.ent) then
 				if Entity.IsHero(tableParticle.ent) then
-					--MiniMap.AddIcon(nil, Hero.GetIcon(tableParticle.ent), tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["alphaChannel"], 0.1, 900)
-					MiniMap.AddIconByName(nil, "minimap_herocircle", tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["alphaChannel"], 0.1, 1000)
+					local vectorColor = testTeleportMinimap.rgbaTable[Hero.GetPlayerID(tableParticle.ent)]["color"]
+					local redChannel = funcFloor(vectorColor:GetX() * 255)
+					local greenChannel = funcFloor(vectorColor:GetY() * 255)
+					local blueChannel = funcFloor(vectorColor:GetZ() * 255)
+					local alphaChannel = 255
+					MiniMap.AddIconByName(nil, "minimap_herocircle", tableParticle.position, redChannel, greenChannel, blueChannel, alphaChannel, 0.1, 1000)
 					if Menu.IsEnabled(testTeleportMinimap.optionEnableWorldDraw) then 
 						local x, y = Renderer.WorldToScreen(tableParticle.position)
 						local specsize = 50 - math.floor(50 / 4)
@@ -250,7 +249,13 @@ function testTeleportMinimap.OnDraw()
 					
 				else
 					local entOwner = Entity.GetOwner(tableParticle.ent)
-					MiniMap.AddIconByName(nil, "minimap_enemyimage", tableParticle.position, testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["redChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["greenChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["blueChannel"], testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["alphaChannel"], 0.1, 1000)
+					local vectorColor = testTeleportMinimap.rgbaTable[Hero.GetPlayerID(entOwner)]["color"]
+					local redChannel = funcFloor(vectorColor:GetX() * 255)
+					local greenChannel = funcFloor(vectorColor:GetY() * 255)
+					local blueChannel = funcFloor(vectorColor:GetZ() * 255)
+					local alphaChannel = 255
+					
+					MiniMap.AddIconByName(nil, "minimap_enemyimage", tableParticle.position, redChannel, greenChannel, blueChannel, alphaChannel, 0.1, 1000)
 					if Menu.IsEnabled(testTeleportMinimap.optionEnableWorldDraw) then 
 						local x, y = Renderer.WorldToScreen(tableParticle.position)
 						local specsize = 50 - math.floor(50 / 4)
