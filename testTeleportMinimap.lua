@@ -1,8 +1,8 @@
 local testTeleportMinimap = {}
 
-testTeleportMinimap.optionEnable = Menu.AddOption({"mlambers", "Minimap Teleport Info"}, "1. On/Off script.", "Shows teleport")
-testTeleportMinimap.optionEnableWorldDraw = Menu.AddOption({"mlambers", "Minimap Teleport Info"}, "2. Enable world draw.", "")
-testTeleportMinimap.optionEnableLogging = Menu.AddOption({"mlambers", "Minimap Teleport Info"}, "3. Enable logging.", "Should just disable this, only for development")
+testTeleportMinimap.optionEnable = Menu.AddOption({"mlambers", "Minimap Teleport Info"}, "1. Enable", "Turn On/Off this script.")
+testTeleportMinimap.optionEnableWorldDraw = Menu.AddOption({"mlambers", "Minimap Teleport Info"}, "2. Enable world draw", "")
+testTeleportMinimap.optionEnableLogging = Menu.AddOption({"mlambers", "Minimap Teleport Info"}, "3. Enable logging", "Should just disable this, only for development")
 
 testTeleportMinimap.rgbaTable = {
 	color = {
@@ -49,17 +49,38 @@ Assets.Images = {}
 Assets.Path = "panorama/images/heroes/icons/"
 
 function testTeleportMinimap.OnScriptLoad()
+	for k in pairs(particlesTable) do
+		particlesTable[k] = nil
+	end
 	particlesTable = {}
+	
+	for k in pairs(Assets.Images) do
+		Assets.Images[k] = nil
+	end
 	Assets.Images = {}
 end
 
 function testTeleportMinimap.OnGameStart()
+	for k in pairs(particlesTable) do
+		particlesTable[k] = nil
+	end
 	particlesTable = {}
+	
+	for k in pairs(Assets.Images) do
+		Assets.Images[k] = nil
+	end
 	Assets.Images = {}
 end
 
 function testTeleportMinimap.OnGameEnd()
+	for k in pairs(particlesTable) do
+		particlesTable[k] = nil
+	end
 	particlesTable = {}
+	
+	for k in pairs(Assets.Images) do
+		Assets.Images[k] = nil
+	end
 	Assets.Images = {}
 end
 
@@ -67,10 +88,9 @@ function testTeleportMinimap.InsertParticleTable(particle)
     local myHero = Heroes.GetLocal()
 	
 	if testTeleportMinimap.Boolean[3][particle.name] and (particle.entity or particle.entityForModifiers) then
-		if (particle.name == "furion_teleport") and not Entity.IsSameTeam(myHero, particle.entity)  then
+		if particle.entity and (particle.name == "furion_teleport") and not Entity.IsSameTeam(myHero, particle.entity)  then
 			if Entity.IsHero(particle.entity) then
-				particlesTable[#particlesTable + 1] =  {
-					index = particle.index,
+				particlesTable[particle.index] =  {
 					name = particle.name,
 					ent = particle.entity,
 					endTime = GameRules.GetGameTime() + 5,
@@ -79,14 +99,13 @@ function testTeleportMinimap.InsertParticleTable(particle)
 				}
 				
 				if Menu.IsEnabled(testTeleportMinimap.optionEnableLogging) then
-					Log.Write("Success added particle['" .. particle.name .. "'] into table, current table count " .. testTeleportMinimap.count_particles)
+					Log.Write("Success added particle['" .. particle.name .. "'] into table.")
 				end
 				
 				return true
 			else
 				local entOwner = Entity.GetOwner(particle.entity)
-				particlesTable[#particlesTable + 1] = {
-					index = particle.index,
+				particlesTable[particle.index] = {
 					name = particle.name,
 					ent = particle.entity,
 					endTime = GameRules.GetGameTime() + 5,
@@ -95,45 +114,41 @@ function testTeleportMinimap.InsertParticleTable(particle)
 				}
 				
 				if Menu.IsEnabled(testTeleportMinimap.optionEnableLogging) then
-					Log.Write("Success added particle['" .. particle.name .. "'] into table, current table count " .. testTeleportMinimap.count_particles)
+					Log.Write("Success added particle['" .. particle.name .. "'] into table.")
 				end
 				
 				return true
 			end
-		else
-			if not Entity.IsSameTeam(Heroes.GetLocal(), particle.entityForModifiers)  then
-				if Entity.IsHero(particle.entityForModifiers) then
-					particlesTable[#particlesTable + 1] = {
-						index = particle.index,
-						name = particle.name,
-						ent = particle.entityForModifiers,
-						endTime = GameRules.GetGameTime() + 5,
-						isHero = true,
-						playerID = Hero.GetPlayerID(particle.entityForModifiers)
-					}
+		elseif particle.entityForModifiers and particle.name ~= "furion_teleport" and not Entity.IsSameTeam(Heroes.GetLocal(), particle.entityForModifiers) then
+			if Entity.IsHero(particle.entityForModifiers) then
+				particlesTable[particle.index] = {
+					name = particle.name,
+					ent = particle.entityForModifiers,
+					endTime = GameRules.GetGameTime() + 5,
+					isHero = true,
+					playerID = Hero.GetPlayerID(particle.entityForModifiers)
+				}
 					
-					if Menu.IsEnabled(testTeleportMinimap.optionEnableLogging) then
-						Log.Write("Success added particle['" .. particle.name .. "'] into table, current table count " .. testTeleportMinimap.count_particles)
-					end
-					
-					return true
-				else
-					local entOwner = Entity.GetOwner(particle.entityForModifiers)
-					particlesTable[#particlesTable + 1] = {
-						index = particle.index,
-						name = particle.name,
-						ent = particle.entityForModifiers,
-						endTime = GameRules.GetGameTime() + 5,
-						isHero = false,
-						playerID = Hero.GetPlayerID(entOwner)
-					}
-					
-					if Menu.IsEnabled(testTeleportMinimap.optionEnableLogging) then
-						Log.Write("Success added particle['" .. particle.name .. "'] into table, current table count " .. testTeleportMinimap.count_particles)
-					end
-					
-					return true
+				if Menu.IsEnabled(testTeleportMinimap.optionEnableLogging) then
+					Log.Write("Success added particle['" .. particle.name .. "'] into table.")
 				end
+					
+				return true
+			else
+				local entOwner = Entity.GetOwner(particle.entityForModifiers)
+				particlesTable[particle.index] = {
+					name = particle.name,
+					ent = particle.entityForModifiers,
+					endTime = GameRules.GetGameTime() + 5,
+					isHero = false,
+					playerID = Hero.GetPlayerID(entOwner)
+				}
+					
+				if Menu.IsEnabled(testTeleportMinimap.optionEnableLogging) then
+					Log.Write("Success added particle['" .. particle.name .. "'] into table.")
+				end
+					
+				return true
 			end
 		end	
 	end
@@ -142,24 +157,25 @@ end
 
 function testTeleportMinimap.OnParticleCreate(particle)
 	if not Menu.IsEnabled(testTeleportMinimap.optionEnable) then return end
-	if not Heroes.GetLocal() then return end
+	
 	testTeleportMinimap.InsertParticleTable(particle)
 end
 
 function testTeleportMinimap.OnParticleUpdate(particle)
 	if not Menu.IsEnabled(testTeleportMinimap.optionEnable) then return end
-	for keyTable = 1, #particlesTable do
-		local tableValue = particlesTable[keyTable]
-		if tableValue and (particle.index == tableValue.index) then
+	
+	for key, value in pairs(particlesTable) do
+		local tableValue = value
+		if tableValue and (particle.index == key) then
 			if particle.controlPoint == 1 and tableValue.name == "furion_teleport_end" then
-				particlesTable[keyTable].position = particle.position
+				particlesTable[key].position = particle.position
 				if Menu.IsEnabled(testTeleportMinimap.optionEnableLogging) then
-					Log.Write("Success update particle['" .. tableValue.name .. "'] position vector, current table count " .. testTeleportMinimap.count_particles)
+					Log.Write("Success update particle['" .. tableValue.name .. "'] position vector.")
 				end
 			elseif particle.controlPoint == 0 and tableValue.name ~= "furion_teleport_end" then
-				particlesTable[keyTable].position = particle.position
+				particlesTable[key].position = particle.position
 				if Menu.IsEnabled(testTeleportMinimap.optionEnableLogging) then
-					Log.Write("Success update particle['" .. tableValue.name .. "'] position vector, current table count " .. testTeleportMinimap.count_particles)
+					Log.Write("Success update particle['" .. tableValue.name .. "'] position vector.")
 				end
 			end
 		end
@@ -168,24 +184,25 @@ end
 
 function testTeleportMinimap.OnParticleUpdateEntity(particle)
 	if not Menu.IsEnabled(testTeleportMinimap.optionEnable) then return end
-	for keyTable = 1, #particlesTable do
-		local tableValue = particlesTable[keyTable]
-        if tableValue and particle.index == tableValue.index then
+	
+	for key, value in pairs(particlesTable) do
+		local tableValue = value
+        if tableValue and particle.index == key then
 			if particle.controlPoint == 0 and (tableValue.name == "teleport_end" or tableValue.name == "teleport_end_bots") then
-				particlesTable[keyTable].position = particle.position
+				particlesTable[key].position = particle.position
 			end
-            
         end
     end
 end
 
 function testTeleportMinimap.OnParticleDestroy(particle)
 	if not Menu.IsEnabled(testTeleportMinimap.optionEnable) then return end
-	for keyTable = 1, #particlesTable do
-        if particlesTable[keyTable] and particle.index == particlesTable[keyTable]["index"] then
-            particlesTable[keyTable] = nil
+	
+	for key in pairs(particlesTable) do
+        if particle.index == key then
+            particlesTable[key] = nil
 			if Menu.IsEnabled(testTeleportMinimap.optionEnableLogging) then
-				Log.Write("Success delete table using OnParticleDestroy, current table count " .. testTeleportMinimap.count_particles)
+				Log.Write("Success delete table using OnParticleDestroy.")
 			end
         end
     end
@@ -198,7 +215,10 @@ function testTeleportMinimap.LoadImage(prefix, name, path)
 		
 		imageHandle = Renderer.LoadImage(path .. name .. "_png.vtex_c")
 		Assets.Images[prefix .. name] = imageHandle
+		imageHandle = nil
 	end
+	
+	return Assets.Images[prefix .. name]
 end
 
 function testTeleportMinimap.IsOnScreen(x, y)
@@ -216,13 +236,16 @@ function testTeleportMinimap.IsOnScreen(x, y)
 end
 
 function testTeleportMinimap.OnDraw()
+	if Engine.IsInGame() == false then return end
 	if not Menu.IsEnabled(testTeleportMinimap.optionEnable) then return end
-	local myHero = Heroes.GetLocal()
+	if GameRules.GetGameState() < 4 then return end
+	if GameRules.GetGameState() > 5 then return end
 	
+	local myHero = Heroes.GetLocal()
 	if not myHero then return end
 	
-	for keyTable = 1, #particlesTable do
-		local tableValue = particlesTable[keyTable]
+	for key, value in pairs(particlesTable) do
+		local tableValue = value
 		if tableValue then
 			local particle_end_time = tableValue.endTime
 			local particle_position = tableValue.position
@@ -251,13 +274,13 @@ function testTeleportMinimap.OnDraw()
 							local x, y = Renderer.WorldToScreen(particle_position)
 							if testTeleportMinimap.IsOnScreen(x, y) then
 								if string.find(UnitName, "npc_dota_lone_druid_bear") then
-									testTeleportMinimap.LoadImage("icon_", "lone_druid_spirit_bear", "panorama/images/spellicons/")
+									--testTeleportMinimap.LoadImage("icon_", "lone_druid_spirit_bear", "panorama/images/spellicons/")
 										Renderer.SetDrawColor(255, 255, 255, 255)
-									Renderer.DrawImage(Assets.Images["icon_lone_druid_spirit_bear"], (x - 24), (y - 24), 48.0, 48.0)
+									Renderer.DrawImage(testTeleportMinimap.LoadImage("icon_", "lone_druid_spirit_bear", "panorama/images/spellicons/"), (x - 24), (y - 24), 48.0, 48.0)
 								else
-									testTeleportMinimap.LoadImage("icon_", UnitName, Assets.Path)
+									--testTeleportMinimap.LoadImage("icon_", UnitName, Assets.Path)
 									Renderer.SetDrawColor(255, 255, 255, 255)
-									Renderer.DrawImage(Assets.Images["icon_" .. UnitName], (x - 24), (y - 24), 48.0, 48.0)
+									Renderer.DrawImage(testTeleportMinimap.LoadImage("icon_", UnitName, Assets.Path), (x - 24), (y - 24), 48.0, 48.0)
 								end
 							end
 						end
@@ -269,11 +292,9 @@ function testTeleportMinimap.OnDraw()
 							MiniMap.AddIconByName(nil, "minimap_ping_teleporting", particle_position, redChannel, greenChannel, blueChannel, alphaChannel, 0.1, 1100)
 						end
 					end
-					
-					
 				end
 			else
-				particlesTable[keyTable] = nil
+				particlesTable[key] = nil
 			end
 		end
 	end
