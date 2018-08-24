@@ -1,6 +1,7 @@
 local testTeleportMinimap = {}
 
 testTeleportMinimap.optionEnable = Menu.AddOption({"mlambers", "Minimap Teleport Info"}, "1. Enable", "Turn On/Off this script.")
+testTeleportMinimap.optionEnableWorldDraw = Menu.AddOption({"mlambers", "Minimap Teleport Info"}, "2. Enable world draw", "")
 
 testTeleportMinimap.UtilityTable = {
 	{
@@ -13,14 +14,20 @@ testTeleportMinimap.UtilityTable = {
 
 testTeleportMinimap.NeedInit = true
 testTeleportMinimap.DoneInit = false
+
 local widthScreen, heightScreen = nil, nil
 local myHero = nil
 local GameTime = 0
 local particlesTable = {}
 local LuaMathFloor = math.floor
+local LuaStringFind = string.find
+
+local Memoize = nil
+local memoizeImages = nil
+local memoizeCalc = nil
 
 local Assets = {}
-Assets.Images = {}
+Assets.Table = {}
 Assets.Path = "panorama/images/heroes/icons/"
 
 function testTeleportMinimap.OnScriptLoad()
@@ -29,10 +36,10 @@ function testTeleportMinimap.OnScriptLoad()
 	end
 	particlesTable = {}
 	
-	for k in pairs(Assets.Images) do
+	for k in pairs(Assets.Table) do
 		Assets.Images[k] = nil
 	end
-	Assets.Images = {}
+	Assets.Table = {{}, {}}
 	
 	GameTime = 0
 	widthScreen, heightScreen = nil, nil
@@ -47,10 +54,10 @@ function testTeleportMinimap.OnGameStart()
 	end
 	particlesTable = {}
 	
-	for k in pairs(Assets.Images) do
-		Assets.Images[k] = nil
+	for k in pairs(Assets.Table) do
+		Assets.Table[k] = nil
 	end
-	Assets.Images = {}
+	Assets.Table = {{}, {}}
 	
 	GameTime = 0
 	
@@ -70,16 +77,26 @@ function testTeleportMinimap.OnGameEnd()
 	end
 	particlesTable = {}
 	
-	for k in pairs(Assets.Images) do
+	for k in pairs(Assets.Table) do
 		Assets.Images[k] = nil
 	end
-	Assets.Images = {}
+	
+	Assets.Table = {{}, {}}
 	
 	GameTime = 0
 	widthScreen, heightScreen = nil, nil
 	myHero = nil
 	testTeleportMinimap.DoneInit = false
 	testTeleportMinimap.NeedInit = true
+end
+
+function testTeleportMinimap.Sum(a)
+	return LuaMathFloor(255 * a)
+end
+
+function testTeleportMinimap.LoadImage( ... )
+	local arg = {...}
+	return Renderer.LoadImage(arg[1] .. arg[2] .. "_png.vtex_c")
 end
 
 function testTeleportMinimap.InsertParticleTable(particle)
@@ -162,15 +179,15 @@ function testTeleportMinimap.OnParticleUpdate(particle)
 				end
 			elseif particle.controlPoint == 2 and (tableValue.name == "teleport_end" or tableValue.name == "teleport_end_bots") then
 				if tableValue.RedVal == nil then
-					tableValue.RedVal = LuaMathFloor(particle.position:GetX() * 255)
+					tableValue.RedVal = memoizeCalc(particle.position:GetX())
 				end
 				
 				if tableValue.GreenVal == nil then
-					tableValue.GreenVal = LuaMathFloor(particle.position:GetY() * 255)
+					tableValue.GreenVal = memoizeCalc(particle.position:GetY())
 				end
 				
 				if tableValue.BlueVal == nil then
-					tableValue.BlueVal = LuaMathFloor(particle.position:GetZ() * 255)
+					tableValue.BlueVal = memoizeCalc(particle.position:GetZ())
 				end
 			end
 		end
@@ -203,19 +220,6 @@ function testTeleportMinimap.OnParticleDestroy(particle)
     end
 end
 
-function testTeleportMinimap.LoadImage(prefix, name, path)
-	local imageHandle = Assets.Images[prefix .. name]
-
-	if (imageHandle == nil) then
-		
-		imageHandle = Renderer.LoadImage(path .. name .. "_png.vtex_c")
-		Assets.Images[prefix .. name] = imageHandle
-		imageHandle = nil
-	end
-	
-	return Assets.Images[prefix .. name]
-end
-
 function testTeleportMinimap.IsOnScreen(x, y)
 	if (x < 1) or (y < 1) then 
 		return false 
@@ -241,7 +245,20 @@ function testTeleportMinimap.OnDraw()
 			myHero = Heroes.GetLocal()
 		end
 		
+		for k in pairs(Assets.Table) do
+			Assets.Table[k] = nil
+		end
+		
+		Assets.Table = {{}, {}}
+		
+		memoize = require("Utility/memoize")
+		memoizeImages = memoize(testTeleportMinimap.LoadImage, Assets.Table[1])
+		
+		memoizeCalc = memoize(testTeleportMinimap.Sum, Assets.Table[2])
+		
+		
 		testTeleportMinimap.DoneInit = true
+		testTeleportMinimap.NeedInit = false
 	end
 	
 	if not myHero then return end
@@ -268,11 +285,25 @@ function testTeleportMinimap.OnDraw()
 					else
 						MiniMap.AddIconByName(nil, "minimap_enemyimage", tableValue.PositionCaster, 255, 255, 255, 255, 0.15, 1200)
 					end
+					
+					if Menu.IsEnabled(testTeleportMinimap.optionEnableWorldDraw) then
+						local UnitName = NPC.GetUnitName(tableValue.ent)
+						local x, y = Renderer.WorldToScreen(tableValue.PositionCaster)
+						
+						if testTeleportMinimap.IsOnScreen(x, y) then
+							if LuaStringFind(UnitName, "npc_dota_lone_druid_bear") then
+								Renderer.SetDrawColor(255, 255, 255, 255)
+								Renderer.DrawImage(memoizeImages("panorama/images/spellicons/", "lone_druid_spirit_bear"), (x - 24), (y - 24), 48.0, 48.0)
+							else
+								Renderer.SetDrawColor(255, 255, 255, 255)
+								Renderer.DrawImage(memoizeImages(Assets.Path, UnitName), (x - 24), (y - 24), 48.0, 48.0)
+							end
+						end
+					end
 				end
 			end
 		end
 	end
 end
-
 
 return testTeleportMinimap
