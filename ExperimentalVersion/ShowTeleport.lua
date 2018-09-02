@@ -9,6 +9,7 @@ ShowTeleport.optionEnableWorldDraw = Menu.AddOption({"mlambers", "Minimap Telepo
 
 ShowTeleport.DoneInit = false
 ShowTeleport.NeedInit = true
+
 local widthScreen, heightScreen = nil, nil
 local myHero = nil
 local Memoize = nil
@@ -20,6 +21,7 @@ Assets.Path = "panorama/images/heroes/icons/"
 
 local FunctionFloor = math.floor
 local LuaStringFind = string.find
+
 local ParticleManager = {
 	ParticleUnique = {
 		{
@@ -106,20 +108,18 @@ function ShowTeleport.OnScriptLoad()
 	for k in pairs(ParticleData) do
 		table.remove(ParticleData, k)
 	end
-	
 	ParticleData = {}
 	
 	widthScreen, heightScreen = nil, nil
-	myHero = nil
 	
-	for k in pairs(Assets.Table) do
-		Assets.Table[k] = nil
-	end
-		
-	Assets.Table = {}
 	memoizeImages = nil
+	for k in pairs(Assets.Table) do
+		table.remove(Assets.Table, k)
+	end
+	Assets.Table = {}
 	Memoize = nil
 	
+	myHero = nil
 	ShowTeleport.DoneInit = false
 	ShowTeleport.NeedInit = true
 end
@@ -128,22 +128,20 @@ function ShowTeleport.OnGameStart()
 	for k in pairs(ParticleData) do
 		table.remove(ParticleData, k)
 	end
-	
 	ParticleData = {}
 	
 	widthScreen, heightScreen = nil, nil
 	
+	memoizeImages = nil
+	for k in pairs(Assets.Table) do
+		table.remove(Assets.Table, k)
+	end
+	Assets.Table = {}
+	Memoize = nil
+	
 	if myHero == nil then
 		myHero = Heroes.GetLocal()
 	end
-	
-	for k in pairs(Assets.Table) do
-		Assets.Table[k] = nil
-	end
-		
-	Assets.Table = {}
-	memoizeImages = nil
-	Memoize = nil
 	
 	ShowTeleport.DoneInit = false
 	ShowTeleport.NeedInit = true
@@ -153,20 +151,18 @@ function ShowTeleport.OnGameEnd()
 	for k in pairs(ParticleData) do
 		table.remove(ParticleData, k)
 	end
-	
 	ParticleData = {}
 
 	widthScreen, heightScreen = nil, nil
-	myHero = nil
 	
-	for k in pairs(Assets.Table) do
-		Assets.Table[k] = nil
-	end
-		
-	Assets.Table = {}
 	memoizeImages = nil
+	for k in pairs(Assets.Table) do
+		table.remove(Assets.Table, k)
+	end
+	Assets.Table = {}
 	Memoize = nil
 	
+	myHero = nil
 	ShowTeleport.DoneInit = false
 	ShowTeleport.NeedInit = true
 end
@@ -351,23 +347,22 @@ function ShowTeleport.OnDraw()
 	if GameRules.GetGameState() < 4 then return end
 	if GameRules.GetGameState() > 5 then return end
 	
-	if ShowTeleport.NeedInit then
+	if ShowTeleport.NeedInit == true then
 		widthScreen, heightScreen = Renderer.GetScreenSize()
+		
+		for k in pairs(Assets.Table) do
+			table.remove(Assets.Table, key)
+		end
+		Assets.Table = {}
+		memoize = require("Utility/memoize")
+		memoizeImages = memoize(ShowTeleport.LoadImage, Assets.Table)
+		
+		ShowTeleport.DoneInit = true
 		
 		if myHero == nil then
 			myHero = Heroes.GetLocal()
 		end
 		
-		for k in pairs(Assets.Table) do
-			Assets.Table[k] = nil
-		end
-		
-		Assets.Table = {}
-		
-		memoize = require("Utility/memoize")
-		memoizeImages = memoize(ShowTeleport.LoadImage, Assets.Table)
-
-		ShowTeleport.DoneInit = true
 		ShowTeleport.NeedInit = false
 	end
 	
@@ -408,8 +403,6 @@ function ShowTeleport.OnDraw()
 						MiniMap.AddIconByName(Value.SecondIndex, Value.SecondTexture, Value.Position, 255, 255, 255, 255, 0.1, 1000)
 					end
 				end
-				
-				
 			end
 		end
 	end
