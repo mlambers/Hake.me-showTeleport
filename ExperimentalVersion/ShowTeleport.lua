@@ -113,9 +113,6 @@ function ShowTeleport.OnScriptLoad()
 	widthScreen, heightScreen = nil, nil
 	
 	memoizeImages = nil
-	for k in pairs(Assets.Table) do
-		table.remove(Assets.Table, k)
-	end
 	Assets.Table = {}
 	Memoize = nil
 	
@@ -133,9 +130,6 @@ function ShowTeleport.OnGameStart()
 	widthScreen, heightScreen = nil, nil
 	
 	memoizeImages = nil
-	for k in pairs(Assets.Table) do
-		table.remove(Assets.Table, k)
-	end
 	Assets.Table = {}
 	Memoize = nil
 	
@@ -156,9 +150,6 @@ function ShowTeleport.OnGameEnd()
 	widthScreen, heightScreen = nil, nil
 	
 	memoizeImages = nil
-	for k in pairs(Assets.Table) do
-		table.remove(Assets.Table, k)
-	end
 	Assets.Table = {}
 	Memoize = nil
 	
@@ -350,9 +341,6 @@ function ShowTeleport.OnDraw()
 	if ShowTeleport.NeedInit == true then
 		widthScreen, heightScreen = Renderer.GetScreenSize()
 		
-		for k in pairs(Assets.Table) do
-			table.remove(Assets.Table, key)
-		end
 		Assets.Table = {}
 		memoize = require("Utility/memoize")
 		memoizeImages = memoize(ShowTeleport.LoadImage, Assets.Table)
