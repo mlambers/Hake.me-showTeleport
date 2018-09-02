@@ -375,7 +375,7 @@ function ShowTeleport.OnDraw()
 				table.remove(ParticleData, key)
 			end
 			
-			if Value.Position ~= nil then
+			if Value.Position ~= nil and Entity.IsSameTeam(myHero, Value.entity) == false  then
 				if Value.DormantCheck == true then
 					if Entity.IsDormant(Value.entity) == true then
 						MiniMap.AddIconByName(Value.IconIndex, Value.Texture, Value.Position, Value.ColorR, Value.ColorG, Value.ColorB, 255, 0.1, 1200)
