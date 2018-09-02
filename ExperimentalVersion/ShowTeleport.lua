@@ -105,8 +105,8 @@ local ParticleManager = {
 local ParticleData = {}
 
 function ShowTeleport.OnScriptLoad()
-	for k in pairs(ParticleData) do
-		table.remove(ParticleData, k)
+	for i = #ParticleData, 1, -1 do
+		ParticleData[i] = nil
 	end
 	ParticleData = {}
 	
@@ -122,8 +122,8 @@ function ShowTeleport.OnScriptLoad()
 end
 
 function ShowTeleport.OnGameStart()
-	for k in pairs(ParticleData) do
-		table.remove(ParticleData, k)
+	for i = #ParticleData, 1, -1 do
+		ParticleData[i] = nil
 	end
 	ParticleData = {}
 	
@@ -142,8 +142,8 @@ function ShowTeleport.OnGameStart()
 end
 
 function ShowTeleport.OnGameEnd()
-	for k in pairs(ParticleData) do
-		table.remove(ParticleData, k)
+	for i = #ParticleData, 1, -1 do
+		ParticleData[i] = nil
 	end
 	ParticleData = {}
 
@@ -313,7 +313,7 @@ function ShowTeleport.OnParticleDestroy(particle)
 	if GameRules.GetGameState() > 5 then return end
 	if myHero == nil then return end
 	
-	for k, Value in  pairs(ParticleData) do
+	for k, Value in pairs(ParticleData) do
 		if (Value ~= nil) and (particle.index == Value.index) then
 			ParticleData[k] = nil
 		end
@@ -345,50 +345,55 @@ function ShowTeleport.OnDraw()
 		memoize = require("Utility/memoize")
 		memoizeImages = memoize(ShowTeleport.LoadImage, Assets.Table)
 		
-		ShowTeleport.DoneInit = true
-		
 		if myHero == nil then
 			myHero = Heroes.GetLocal()
 		end
 		
+		for i = #ParticleData, 1, -1 do
+			ParticleData[i] = nil
+		end
+		
+		ParticleData = {}
+		ShowTeleport.DoneInit = true
 		ShowTeleport.NeedInit = false
 	end
 	
 	if myHero == nil then return end
-	if ShowTeleport.DoneInit == false then return end
 	
-	for key, Value in pairs(ParticleData) do
-		if Value ~= nil then
-			if Value.TrackUntil - GameRules.GetGameTime() < 0 then
-				table.remove(ParticleData, key)
-			end
-			
-			if Value.Position ~= nil and Value.entity ~= nil and Entity.IsSameTeam(myHero, Value.entity) == false  then
-				if Value.DormantCheck == true then
-					if Entity.IsDormant(Value.entity) == true then
-						MiniMap.AddIconByName(Value.IconIndex, Value.Texture, Value.Position, Value.ColorR, Value.ColorG, Value.ColorB, 255, 0.1, 1200)
-						
-						if Menu.IsEnabled(ShowTeleport.optionEnableWorldDraw) then
-							local UnitName = NPC.GetUnitName(Value.entity)
-							local x, y = Renderer.WorldToScreen(Value.Position)
+	if ShowTeleport.DoneInit == true then
+		for key, Value in pairs(ParticleData) do
+			if Value ~= nil then
+				if Value.TrackUntil - GameRules.GetGameTime() < 0 then
+					ParticleData[key] = nil
+				end
+				
+				if Value.Position ~= nil and Value.entity ~= nil and Entity.IsSameTeam(myHero, Value.entity) == false  then
+					if Value.DormantCheck == true then
+						if Entity.IsDormant(Value.entity) == true then
+							MiniMap.AddIconByName(Value.IconIndex, Value.Texture, Value.Position, Value.ColorR, Value.ColorG, Value.ColorB, 255, 0.1, 1200)
 							
-							if ShowTeleport.IsOnScreen(x, y) == true then
-								if LuaStringFind(UnitName, "npc_dota_lone_druid_bear") then
-									Renderer.SetDrawColor(255, 255, 255, 255)
-									Renderer.DrawImage(memoizeImages("panorama/images/spellicons/", "lone_druid_spirit_bear"), (x - 24), (y - 24), 48.0, 48.0)
-								else
-									Renderer.SetDrawColor(255, 255, 255, 255)
-									Renderer.DrawImage(memoizeImages(Assets.Path, UnitName), (x - 24), (y - 24), 48.0, 48.0)
+							if Menu.IsEnabled(ShowTeleport.optionEnableWorldDraw) then
+								local UnitName = NPC.GetUnitName(Value.entity)
+								local x, y = Renderer.WorldToScreen(Value.Position)
+								
+								if ShowTeleport.IsOnScreen(x, y) == true then
+									if LuaStringFind(UnitName, "npc_dota_lone_druid_bear") then
+										Renderer.SetDrawColor(255, 255, 255, 255)
+										Renderer.DrawImage(memoizeImages("panorama/images/spellicons/", "lone_druid_spirit_bear"), (x - 24), (y - 24), 48.0, 48.0)
+									else
+										Renderer.SetDrawColor(255, 255, 255, 255)
+										Renderer.DrawImage(memoizeImages(Assets.Path, UnitName), (x - 24), (y - 24), 48.0, 48.0)
+									end
 								end
 							end
+							
 						end
+					else
+						MiniMap.AddIconByName(Value.IconIndex, Value.Texture, Value.Position, Value.ColorR, Value.ColorG, Value.ColorB, 255, 0.1, 1200)
 						
-					end
-				else
-					MiniMap.AddIconByName(Value.IconIndex, Value.Texture, Value.Position, Value.ColorR, Value.ColorG, Value.ColorB, 255, 0.1, 1200)
-					
-					if Value.SecondIcon == true then
-						MiniMap.AddIconByName(Value.SecondIndex, Value.SecondTexture, Value.Position, 255, 255, 255, 255, 0.1, 1000)
+						if Value.SecondIcon == true then
+							MiniMap.AddIconByName(Value.SecondIndex, Value.SecondTexture, Value.Position, 255, 255, 255, 255, 0.1, 1000)
+						end
 					end
 				end
 			end
