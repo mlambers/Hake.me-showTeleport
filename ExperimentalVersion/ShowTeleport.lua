@@ -234,10 +234,7 @@ function ShowTeleport.GetData(particle)
 end
 
 function ShowTeleport.OnParticleCreate(particle)
-	if Engine.IsInGame() == false then return end
 	if Menu.IsEnabled(ShowTeleport.optionEnable) == false then return end
-	if GameRules.GetGameState() < 4 then return end
-	if GameRules.GetGameState() > 5 then return end
 	if myHero == nil then return end
 	
 	if ShowTeleport.GetData(particle) == false then
@@ -246,10 +243,7 @@ function ShowTeleport.OnParticleCreate(particle)
 end
 
 function ShowTeleport.OnParticleUpdate(particle)
-	if Engine.IsInGame() == false then return end
 	if Menu.IsEnabled(ShowTeleport.optionEnable) == false then return end
-	if GameRules.GetGameState() < 4 then return end
-	if GameRules.GetGameState() > 5 then return end
 	if myHero == nil then return end
 	
     for _, Value in pairs(ParticleData) do
@@ -307,15 +301,16 @@ function ShowTeleport.OnParticleUpdate(particle)
 end
 
 function ShowTeleport.OnParticleDestroy(particle)
-	if Engine.IsInGame() == false then return end
 	if Menu.IsEnabled(ShowTeleport.optionEnable) == false then return end
-	if GameRules.GetGameState() < 4 then return end
-	if GameRules.GetGameState() > 5 then return end
 	if myHero == nil then return end
 	
-	for k, Value in pairs(ParticleData) do
+	local Value = nil
+	
+	for i = 1, #ParticleData do
+		Value = ParticleData[i]
+
 		if (Value ~= nil) and (particle.index == Value.index) then
-			ParticleData[k] = nil
+			ParticleData[i] = nil
 		end
     end
 end
