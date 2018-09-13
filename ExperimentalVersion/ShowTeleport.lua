@@ -1,13 +1,12 @@
---------------------------------
---- ShowTeleport Version 0.2 ---
---------------------------------
+---------------------------------
+--- ShowTeleport Version 0.2a ---
+---------------------------------
 
 local ShowTeleport = {}
 
 ShowTeleport.optionEnable = Menu.AddOption({"mlambers", "Minimap Teleport Info"}, "1. Enable", "Enable this script.")
 ShowTeleport.optionEnableWorldDraw = Menu.AddOption({"mlambers", "Minimap Teleport Info"}, "2. Enable world draw", "")
 
-ShowTeleport.DoneInit = false
 ShowTeleport.NeedInit = true
 
 local widthScreen, heightScreen = nil, nil
@@ -15,12 +14,11 @@ local myHero = nil
 local Memoize = nil
 local memoizeImages = nil
 
-local Assets = {}
-Assets.Table = {}
-Assets.Path = "panorama/images/heroes/icons/"
+local AssetsTable = {}
 
 local FunctionFloor = math.floor
 local LuaStringFind = string.find
+local ValueOnDraw = nil
 
 local ParticleManager = {
 	ParticleUnique = {
@@ -113,12 +111,16 @@ function ShowTeleport.OnScriptLoad()
 	widthScreen, heightScreen = nil, nil
 	
 	memoizeImages = nil
-	Assets.Table = {}
+	AssetsTable = {}
 	Memoize = nil
 	
 	myHero = nil
-	ShowTeleport.DoneInit = false
+	ValueOnDraw = nil
 	ShowTeleport.NeedInit = true
+	
+	Console.Print("\n")
+	Console.Print("ShowTeleport.OnScriptLoad()")
+	Console.Print("\n")
 end
 
 function ShowTeleport.OnGameStart()
@@ -130,15 +132,18 @@ function ShowTeleport.OnGameStart()
 	widthScreen, heightScreen = nil, nil
 	
 	memoizeImages = nil
-	Assets.Table = {}
+	AssetsTable = {}
 	Memoize = nil
 	
 	if myHero == nil then
 		myHero = Heroes.GetLocal()
 	end
-	
-	ShowTeleport.DoneInit = false
+	ValueOnDraw = nil
 	ShowTeleport.NeedInit = true
+	
+	Console.Print("\n")
+	Console.Print("ShowTeleport.OnGameStart()")
+	Console.Print("\n")
 end
 
 function ShowTeleport.OnGameEnd()
@@ -150,12 +155,15 @@ function ShowTeleport.OnGameEnd()
 	widthScreen, heightScreen = nil, nil
 	
 	memoizeImages = nil
-	Assets.Table = {}
+	AssetsTable = {}
 	Memoize = nil
-	
+	ValueOnDraw = nil
 	myHero = nil
-	ShowTeleport.DoneInit = false
 	ShowTeleport.NeedInit = true
+	
+	Console.Print("\n")
+	Console.Print("ShowTeleport.OnGameEnd()")
+	Console.Print("\n")
 end
 
 function ShowTeleport.LoadImage( ... )
@@ -336,59 +344,59 @@ function ShowTeleport.OnDraw()
 	if ShowTeleport.NeedInit == true then
 		widthScreen, heightScreen = Renderer.GetScreenSize()
 		
-		Assets.Table = {}
+		AssetsTable = {}
 		memoize = require("Utility/memoize")
-		memoizeImages = memoize(ShowTeleport.LoadImage, Assets.Table)
+		memoizeImages = memoize(ShowTeleport.LoadImage, AssetsTable)
+		
+		for i = #ParticleData, 1, -1 do
+			ParticleData[i] = nil
+		end
+		ParticleData = {}
 		
 		if myHero == nil then
 			myHero = Heroes.GetLocal()
 		end
 		
-		for i = #ParticleData, 1, -1 do
-			ParticleData[i] = nil
-		end
+		ValueOnDraw = nil
 		
-		ParticleData = {}
-		ShowTeleport.DoneInit = true
 		ShowTeleport.NeedInit = false
 	end
 	
 	if myHero == nil then return end
 	
-	if ShowTeleport.DoneInit == true then
-		for key, Value in pairs(ParticleData) do
-			if Value ~= nil then
-				if Value.TrackUntil - GameRules.GetGameTime() < 0 then
-					ParticleData[key] = nil
-				end
+	for key = #ParticleData, 1, -1 do
+		ValueOnDraw = ParticleData[key]
+		if ValueOnDraw ~= nil then
+			if ValueOnDraw.TrackUntil - GameRules.GetGameTime() < 0 then
+				ParticleData[key] = nil
+			end
 				
-				if Value.Position ~= nil and Value.entity ~= nil and Entity.IsSameTeam(myHero, Value.entity) == false  then
-					if Value.DormantCheck == true then
-						if Entity.IsDormant(Value.entity) == true then
-							MiniMap.AddIconByName(Value.IconIndex, Value.Texture, Value.Position, Value.ColorR, Value.ColorG, Value.ColorB, 255, 0.1, 1200)
+			if ValueOnDraw.Position ~= nil and ValueOnDraw.entity ~= nil and Entity.IsSameTeam(myHero, ValueOnDraw.entity) == false  then
+				if ValueOnDraw.DormantCheck == true then
+					if Entity.IsDormant(ValueOnDraw.entity) == true then
+						MiniMap.AddIconByName(ValueOnDraw.IconIndex, ValueOnDraw.Texture, ValueOnDraw.Position, ValueOnDraw.ColorR, ValueOnDraw.ColorG, ValueOnDraw.ColorB, 255, 0.1, 1200)
 							
-							if Menu.IsEnabled(ShowTeleport.optionEnableWorldDraw) then
-								local UnitName = NPC.GetUnitName(Value.entity)
-								local x, y = Renderer.WorldToScreen(Value.Position)
+						if Menu.IsEnabled(ShowTeleport.optionEnableWorldDraw) then
+							local UnitName = NPC.GetUnitName(ValueOnDraw.entity)
+							local x, y = Renderer.WorldToScreen(ValueOnDraw.Position)
 								
-								if ShowTeleport.IsOnScreen(x, y) == true then
-									if LuaStringFind(UnitName, "npc_dota_lone_druid_bear") then
-										Renderer.SetDrawColor(255, 255, 255, 255)
-										Renderer.DrawImage(memoizeImages("panorama/images/spellicons/", "lone_druid_spirit_bear"), (x - 24), (y - 24), 48.0, 48.0)
-									else
-										Renderer.SetDrawColor(255, 255, 255, 255)
-										Renderer.DrawImage(memoizeImages(Assets.Path, UnitName), (x - 24), (y - 24), 48.0, 48.0)
-									end
+							if ShowTeleport.IsOnScreen(x, y) == true then
+								if LuaStringFind(UnitName, "npc_dota_lone_druid_bear") then
+									Renderer.SetDrawColor(255, 255, 255, 255)
+									Renderer.DrawImage(memoizeImages("panorama/images/spellicons/", "lone_druid_spirit_bear"), (x - 24), (y - 24), 48.0, 48.0)
+								else
+									Renderer.SetDrawColor(255, 255, 255, 255)
+									Renderer.DrawImage(memoizeImages("panorama/images/heroes/icons/", UnitName), (x - 24), (y - 24), 48.0, 48.0)
 								end
 							end
+						end
 							
-						end
-					else
-						MiniMap.AddIconByName(Value.IconIndex, Value.Texture, Value.Position, Value.ColorR, Value.ColorG, Value.ColorB, 255, 0.1, 1200)
+					end
+				else
+					MiniMap.AddIconByName(ValueOnDraw.IconIndex, ValueOnDraw.Texture, ValueOnDraw.Position, ValueOnDraw.ColorR, ValueOnDraw.ColorG, ValueOnDraw.ColorB, 255, 0.1, 1200)
 						
-						if Value.SecondIcon == true then
-							MiniMap.AddIconByName(Value.SecondIndex, Value.SecondTexture, Value.Position, 255, 255, 255, 255, 0.1, 1000)
-						end
+					if ValueOnDraw.SecondIcon == true then
+						MiniMap.AddIconByName(ValueOnDraw.SecondIndex, ValueOnDraw.SecondTexture, ValueOnDraw.Position, 255, 255, 255, 255, 0.1, 1000)
 					end
 				end
 			end
