@@ -1,5 +1,5 @@
 ---------------------------------
---- ShowTeleport Version 0.3 ---
+--- ShowTeleport Version 0.4 ---
 ---------------------------------
 
 local ShowTeleport = {
@@ -10,11 +10,6 @@ local ShowTeleport = {
 
 local widthScreen, heightScreen = nil, nil
 local myHero = nil
-local Memoize = nil
-local memoizeImages = nil
-
-local AssetsTable = {}
-
 local FunctionFloor = math.floor
 local LuaStringFind = string.find
 local ValueOnDraw = nil
@@ -109,45 +104,16 @@ function ShowTeleport.OnScriptLoad()
 	ParticleData = {}
 	
 	widthScreen, heightScreen = nil, nil
-	
-	memoizeImages = nil
-	AssetsTable = {}
-	Memoize = nil
-	
+
 	myHero = nil
 	ValueOnDraw = nil
 	TempUnitName, xCoor, yCoor = nil, nil, nil
+	ShowTeleport.NeedInit = true
 	
 	Console.Print("\n================================================\n")
-	Console.Print("Script: Show Teleport | Callback: OnScriptLoad\n")
-	Console.Print("Date & Time: " .. (os.date("%Y-%m-%d %I:%M %p")) .. " | Version: 0.3")
+	Console.Print("Script: Show Teleport | Callback: OnScriptLoad()\n")
+	Console.Print("Date & Time: " .. (os.date("%Y-%m-%d %I:%M %p")) .. " | Version: 0.4")
 	Console.Print("================================================\n\n")
-	
-	ShowTeleport.NeedInit = true
-end
-
-function ShowTeleport.OnGameStart()
-	for i = #ParticleData, 1, -1 do
-		ParticleData[i] = nil
-	end
-	ParticleData = {}
-	
-	widthScreen, heightScreen = nil, nil
-	
-	memoizeImages = nil
-	AssetsTable = {}
-	Memoize = nil
-	
-	if myHero == nil then
-		myHero = Heroes.GetLocal()
-	end
-	ValueOnDraw = nil
-	TempUnitName, xCoor, yCoor = nil, nil, nil
-	ShowTeleport.NeedInit = true
-	
-	Console.Print("\n")
-	Console.Print("Script: ShowTeleport | Function: OnGameStart()")
-	Console.Print("\n")
 end
 
 function ShowTeleport.OnGameEnd()
@@ -158,22 +124,17 @@ function ShowTeleport.OnGameEnd()
 
 	widthScreen, heightScreen = nil, nil
 	
-	memoizeImages = nil
-	AssetsTable = {}
-	Memoize = nil
 	ValueOnDraw = nil
 	myHero = nil
 	TempUnitName, xCoor, yCoor = nil, nil, nil
-	collectgarbage("collect")
 	ShowTeleport.NeedInit = true
 	
-	Console.Print("\n")
-	Console.Print("Script: ShowTeleport | Function: OnGameEnd()")
-	Console.Print("\n")
-end
-
-function ShowTeleport.LoadImage(option1, option2)
-	return Renderer.LoadImage(option1 .. option2 .. "_png.vtex_c")
+	collectgarbage("collect")
+	
+	Console.Print("\n================================================\n")
+	Console.Print("Script: Show Teleport | Callback: OnGameEnd()\n")
+	Console.Print("Date & Time: " .. (os.date("%Y-%m-%d %I:%M %p")) .. " | Version: 0.4")
+	Console.Print("================================================\n\n")
 end
 
 function ShowTeleport.GetParticleUnique(particle)
@@ -213,6 +174,7 @@ function ShowTeleport.GetParticleUnique(particle)
 			return true
 		end
 	end
+	
 	return false
 end
 
@@ -253,6 +215,7 @@ function ShowTeleport.GetParticleNonUnique(particle)
 			return true
 		end
 	end
+	
 	return false
 end
 
@@ -347,18 +310,12 @@ function ShowTeleport.IsOnScreen(x, y)
 	return true
 end
 
-function ShowTeleport.OnDraw()
-	if Engine.IsInGame() == false then return end
+
+function ShowTeleport.OnUpdate()
 	if Menu.IsEnabled(ShowTeleport.optionEnable) == false then return end
-	if GameRules.GetGameState() < 4 then return end
-	if GameRules.GetGameState() > 5 then return end
 	
 	if ShowTeleport.NeedInit == true then
 		widthScreen, heightScreen = Renderer.GetScreenSize()
-		
-		AssetsTable = {}
-		memoize = require("Utility/memoize")
-		memoizeImages = memoize(ShowTeleport.LoadImage, AssetsTable)
 		
 		for i = #ParticleData, 1, -1 do
 			ParticleData[i] = nil
@@ -372,12 +329,28 @@ function ShowTeleport.OnDraw()
 		ValueOnDraw = nil
 		TempUnitName, xCoor, yCoor = nil, nil, nil
 		ShowTeleport.NeedInit = false
+		
+		Console.Print("\n================================================\n")
+		Console.Print("Script: Show Teleport | Callback: OnUpdate()\n")
+		Console.Print("Date & Time: " .. (os.date("%Y-%m-%d %I:%M %p")) .. " | Version: 0.4")
+		Console.Print("Job: Init variable")
+		Console.Print("================================================\n\n")
 	end
 	
+	if myHero == nil then return end
+end
+
+function ShowTeleport.OnDraw()
+	if Engine.IsInGame() == false then return end
+	if Menu.IsEnabled(ShowTeleport.optionEnable) == false then return end
+	if GameRules.GetGameState() < 4 then return end
+	if GameRules.GetGameState() > 5 then return end
+	if ShowTeleport.NeedInit == true then return end
 	if myHero == nil then return end
 	
 	for key = #ParticleData, 1, -1 do
 		ValueOnDraw = ParticleData[key]
+		
 		if ValueOnDraw ~= nil then
 			if ValueOnDraw.TrackUntil - GameRules.GetGameTime() < 0 then
 				ParticleData[key] = nil
@@ -391,17 +364,14 @@ function ShowTeleport.OnDraw()
 						if Menu.IsEnabled(ShowTeleport.optionEnableWorldDraw) == true then
 							TempUnitName = NPC.GetUnitName(ValueOnDraw.entity)
 							xCoor, yCoor = Renderer.WorldToScreen(ValueOnDraw.Position)
-									
+							
 							if ShowTeleport.IsOnScreen(xCoor, yCoor) == true then
+								Renderer.SetDrawColor(255, 255, 255, 255)
+								
 								if LuaStringFind(TempUnitName, "npc_dota_lone_druid_bear") then
-									Renderer.SetDrawColor(255, 255, 255, 255)
-									Renderer.DrawImage(memoizeImages("panorama/images/spellicons/", "lone_druid_spirit_bear"), (xCoor - 24), (yCoor - 24), 48, 48)
+									Renderer.DrawImage("panorama/images/heroes/npc_dota_lone_druid_bear_png.vtex_c", (xCoor - 24), (yCoor - 24), 48, 48)
 								else
-									--Renderer.SetDrawColor(ValueOnDraw.ColorR, ValueOnDraw.ColorG, ValueOnDraw.ColorB, 255)
-									--Renderer.DrawIcon("minimap_plaincircle", (xCoor - 36), (yCoor - 38), 72, 72)
-									Renderer.SetDrawColor(255, 255, 255, 255)
 									Renderer.DrawIcon(Hero.GetIcon(ValueOnDraw.entity), (xCoor - 24), (yCoor - 24), 48, 48)
-									
 								end
 							end
 						end
