@@ -1,6 +1,6 @@
----------------------------------
---- ShowTeleport Version 0.4 ---
----------------------------------
+------------------------------------
+--- ShowTeleport.lua Version 0.5 ---
+------------------------------------
 
 local ShowTeleport = {
 	optionEnable = Menu.AddOption({"mlambers", "Minimap Teleport Info"}, "1. Enable", "Enable this script."),
@@ -12,92 +12,104 @@ local widthScreen, heightScreen = nil, nil
 local myHero = nil
 local FunctionFloor = math.floor
 local LuaStringFind = string.find
-local ValueOnDraw = nil
+local ValueOnDraw, ValueParticleUpdate, ValueParticleDestroy = nil, nil, nil
 local TempUnitName, xCoor, yCoor = nil, nil, nil
 
 local ParticleManager = {
-	ParticleUnique = {
+	{
 		{
-			Name = "teleport_start",
-			TrackDuration = 5,
-			ColorR = nil,
-			ColorG = nil,
-			ColorB = nil,
-			DormantCheck = true,
-			MinimapImage = "minimap_herocircle"
+			["Name"] = "teleport_start",
+			["TrackDuration"] = 5,
+			["ColorR"] = nil,
+			["ColorG"] = nil,
+			["ColorB"] = nil,
+			["DormantCheck"] = true,
+			["MinimapImage"] = "minimap_herocircle"
 		},
 		{
-			Name = "teleport_start_bots",
-			TrackDuration = 5,
-			ColorR = nil,
-			ColorG = nil,
-			ColorB = nil,
-			DormantCheck = true,
-			MinimapImage = "minimap_herocircle"
+			["Name"] = "teleport_start_bots",
+			["TrackDuration"] = 5,
+			["ColorR"] = nil,
+			["ColorG"] = nil,
+			["ColorB"] = nil,
+			["DormantCheck"] = true,
+			["MinimapImage"] = "minimap_herocircle"
 		},
 		{
-			Name = "teleport_end",
-			TrackDuration = 5,
-			ColorR = nil,
-			ColorG = nil,
-			ColorB = nil,
-			DormantCheck = false,
-			MinimapImage = "minimap_ping_teleporting"
+			["Name"] = "teleport_end",
+			["TrackDuration"] = 5,
+			["ColorR"] = nil,
+			["ColorG"] = nil,
+			["ColorB"] = nil,
+			["DormantCheck"] = false,
+			["MinimapImage"] = "minimap_ping_teleporting"
 		},
 		{
-			Name = "teleport_end_bots",
-			TrackDuration = 5,
-			ColorR = nil,
-			ColorG = nil,
-			ColorB = nil,
-			DormantCheck = false,
-			MinimapImage = "minimap_ping_teleporting"
+			["Name"] = "teleport_end_bots",
+			["TrackDuration"] = 5,
+			["ColorR"] = nil,
+			["ColorG"] = nil,
+			["ColorB"] = nil,
+			["SecondIcon"] = true,
+			["DormantCheck"] = false,
+			["MinimapImage"] = "minimap_ping_teleporting"
 		},
 		{
-			Name = "furion_teleport_end",
-			TrackDuration = 5,
-			ColorR = 255,
-			ColorG = 255,
-			ColorB = 255,
-			SecondIcon = true,
-			DormantCheck = false,
-			MinimapImage = "minimap_ping_teleporting"
+			["Name"] = "furion_teleport_end",
+			["TrackDuration"] = 5,
+			["ColorR"] = 255,
+			["ColorG"] = 0,
+			["ColorB"] = 0,
+			["SecondIcon"] = true,
+			["DormantCheck"] = false,
+			["MinimapImage"] = "minimap_ping_teleporting"
 		}
 	},
-	ParticleNonUnique = {
+	--[[
+		1 -> ["Name"]
+		2 -> ["TrackDuration"]
+		3 -> ["ColorR"]
+		4 -> ["ColorG"]
+		5 -> ["ColorB"]
+		6 -> ["DormantCheck"]
+		7 -> ["MinimapImage"]
+	--]]
+	{
+		"furion_teleport",
+		5,
+		255,
+		0,
+		0,
+		true,
+		"minimap_herocircle"
+	},
+	{
 		{
-			Name = "furion_teleport",
-			TrackDuration = 5,
-			ColorR = 255,
-			ColorG = 255,
-			ColorB = 255,
-			DormantCheck = true,
-			MinimapImage = "minimap_herocircle"
+			["teleport_start"] = true,
+			["teleport_start_bots"] = true,
+			["furion_teleport"] = true
+		},
+		{
+			["furion_teleport_end"] = true
+		},
+		{
+			["teleport_start"] = true,
+			["teleport_start_bots"] = true,
+			["teleport_end"] = true,
+			["teleport_end_bots"] = true
+		},
+		{
+			["teleport_end"] = true,
+			["teleport_end_bots"] = true
 		}
-	},
-	GetParticleUpdateZero = {
-		teleport_start = true,
-		teleport_start_bots = true,
-		furion_teleport = true
-	},
-	GetParticleUpdateOne = {
-		furion_teleport_end = true
-	},
-	GetParticleUpdateTwo = {
-		teleport_start = true,
-		teleport_start_bots = true,
-		teleport_end = true,
-		teleport_end_bots = true
-	},
-	GetParticleUpdateFive = {
-		teleport_end = true,
-		teleport_end_bots = true
 	}
 }
 
 local ParticleData = {}
 
 function ShowTeleport.OnScriptLoad()
+	Console.Print("\n[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.5 ] Script load.\n\n")
+	
 	for i = #ParticleData, 1, -1 do
 		ParticleData[i] = nil
 	end
@@ -106,14 +118,9 @@ function ShowTeleport.OnScriptLoad()
 	widthScreen, heightScreen = nil, nil
 
 	myHero = nil
-	ValueOnDraw = nil
+	ValueOnDraw, ValueParticleUpdate, ValueParticleDestroy = nil, nil, nil
 	TempUnitName, xCoor, yCoor = nil, nil, nil
 	ShowTeleport.NeedInit = true
-	
-	Console.Print("\n================================================\n")
-	Console.Print("Script: Show Teleport | Callback: OnScriptLoad()\n")
-	Console.Print("Date & Time: " .. (os.date("%Y-%m-%d %I:%M %p")) .. " | Version: 0.4")
-	Console.Print("================================================\n\n")
 end
 
 function ShowTeleport.OnGameEnd()
@@ -124,53 +131,46 @@ function ShowTeleport.OnGameEnd()
 
 	widthScreen, heightScreen = nil, nil
 	
-	ValueOnDraw = nil
+	ValueOnDraw, ValueParticleUpdate, ValueParticleDestroy = nil, nil, nil
 	myHero = nil
 	TempUnitName, xCoor, yCoor = nil, nil, nil
 	ShowTeleport.NeedInit = true
 	
 	collectgarbage("collect")
 	
-	Console.Print("\n================================================\n")
-	Console.Print("Script: Show Teleport | Callback: OnGameEnd()\n")
-	Console.Print("Date & Time: " .. (os.date("%Y-%m-%d %I:%M %p")) .. " | Version: 0.4")
-	Console.Print("================================================\n\n")
+	Console.Print("\n[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.5 ] Game end. Reset all variable.\n\n")
 end
 
-function ShowTeleport.GetParticleUnique(particle)
+function ShowTeleport.IsUniqueParticle(particle)
 	local idx = nil
-	local v = nil
+	local ValueUniqueParticle = nil
 	
-	for i = #ParticleManager.ParticleUnique, 1, -1 do
-		v = ParticleManager.ParticleUnique[i]
+	for i = 1, 5 do
+		ValueUniqueParticle = ParticleManager[1][i]
 	
-		if particle.name == v.Name then
+		if particle.name == ValueUniqueParticle.Name then
 			idx = particle.index
 			
 			if idx > -1 then
 				idx = idx * -1
 			end
 			
-			table.insert(
-							ParticleData, 
-							{
-								index = particle.index,
-								name = v.Name,
-								TrackUntil = GameRules.GetGameTime() + v.TrackDuration,
-								entity = particle.entityForModifiers or nil,
-								Position = nil,
-								IconIndex = idx,
-								SecondIndex = nil,
-								ColorR = v.ColorR,
-								ColorG = v.ColorG,
-								ColorB = v.ColorB,
-								SecondIcon = v.SecondIcon or false,
-								DormantCheck = v.DormantCheck,
-								Texture = v.MinimapImage or nil,
-								SecondTexture = nil
-							}
-						)
-			
+			ParticleData[#ParticleData + 1] = {
+				index = particle.index,
+				name = ValueUniqueParticle.Name,
+				TrackUntil = GameRules.GetGameTime() + ValueUniqueParticle.TrackDuration,
+				entity = particle.entityForModifiers or nil,
+				Position = nil,
+				IconIndex = idx,
+				SecondIndex = nil,
+				ColorR = ValueUniqueParticle.ColorR,
+				ColorG = ValueUniqueParticle.ColorG,
+				ColorB = ValueUniqueParticle.ColorB,
+				SecondIcon = ValueUniqueParticle.SecondIcon or false,
+				DormantCheck = ValueUniqueParticle.DormantCheck,
+				Texture = ValueUniqueParticle.MinimapImage or nil,
+				SecondTexture = nil
+			}
 			return true
 		end
 	end
@@ -178,44 +178,37 @@ function ShowTeleport.GetParticleUnique(particle)
 	return false
 end
 
-function ShowTeleport.GetParticleNonUnique(particle)
+function ShowTeleport.IsNonUniqueParticle(particle)
 	local idx = nil
-	local ValueParticleNonUnique = nil
+	local ValueParticleNonUnique = ParticleManager[2]
 	
-	for i = #ParticleManager.ParticleNonUnique, 1, -1 do
-		ValueParticleNonUnique = ParticleManager.ParticleNonUnique[i]
-	
-		if particle.name == ValueParticleNonUnique.Name then
-			idx = particle.index
+	if particle.name == ValueParticleNonUnique[1] then
+		idx = particle.index
 			
-			if idx > -1 then
-				idx = idx * -1
-			end
-			
-			table.insert(
-							ParticleData, 
-							{
-								index = particle.index,
-								name = ValueParticleNonUnique.Name,
-								TrackUntil = os.clock() + ValueParticleNonUnique.TrackDuration,
-								entity = particle.entity or nil,
-								Position = nil,
-								IconIndex = idx,
-								SecondIndex = nil,
-								ColorR = ValueParticleNonUnique.ColorR,
-								ColorG = ValueParticleNonUnique.ColorG,
-								ColorB = ValueParticleNonUnique.ColorB,
-								SecondIcon = ValueParticleNonUnique.SecondIcon or false,
-								DormantCheck = ValueParticleNonUnique.DormantCheck,
-								Texture = ValueParticleNonUnique.MinimapImage or nil,
-								SecondTexture = nil
-							}
-						)
-			
-			return true
+		if idx > -1 then
+			idx = idx * -1
 		end
+			
+		ParticleData[#ParticleData + 1] = {
+			index = particle.index,
+			name = ValueParticleNonUnique[1],
+			TrackUntil = GameRules.GetGameTime() + ValueParticleNonUnique[2],
+			entity = particle.entity or nil,
+			Position = nil,
+			IconIndex = idx,
+			SecondIndex = nil,
+			ColorR = ValueParticleNonUnique[3],
+			ColorG = ValueParticleNonUnique[4],
+			ColorB = ValueParticleNonUnique[5],
+			SecondIcon = ValueParticleNonUnique.SecondIcon or false,
+			DormantCheck = ValueParticleNonUnique[6],
+			Texture = ValueParticleNonUnique[7] or nil,
+			SecondTexture = nil
+		}
+			
+		return true
 	end
-	
+
 	return false
 end
 
@@ -223,8 +216,8 @@ function ShowTeleport.OnParticleCreate(particle)
 	if Menu.IsEnabled(ShowTeleport.optionEnable) == false then return end
 	if myHero == nil then return end
 	
-	if ShowTeleport.GetParticleNonUnique(particle) == false then
-		ShowTeleport.GetParticleUnique(particle)
+	if ShowTeleport.IsUniqueParticle(particle) == false then
+		ShowTeleport.IsNonUniqueParticle(particle)
 	end
 end
 
@@ -232,28 +225,31 @@ function ShowTeleport.OnParticleUpdate(particle)
 	if Menu.IsEnabled(ShowTeleport.optionEnable) == false then return end
 	if myHero == nil then return end
 	
-    for _, Value in pairs(ParticleData) do
-        if Value ~= nil and particle.index == Value.index then
+	ValueParticleUpdate = nil
+	
+	for i = 1, #ParticleData do
+		ValueParticleUpdate = ParticleData[i]
+		
+		if ValueParticleUpdate ~= nil and particle.index == ValueParticleUpdate.index then
 			if particle.controlPoint == 0 then
-				if ParticleManager.GetParticleUpdateZero[Value.name] then
-					if Value.Position == nil then
-						Value.Position = particle.position
+				if ParticleManager[3][1][ValueParticleUpdate.name] then
+					if ValueParticleUpdate.Position == nil then
+						ValueParticleUpdate.Position = particle.position
 					end
 				end
 			end
 			
 			if particle.controlPoint == 1 then
-				if ParticleManager.GetParticleUpdateOne[Value.name] then
-					if Value.Position == nil then
-						Value.Position = particle.position
+				if ParticleManager[3][2][ValueParticleUpdate.name] then
+					if ValueParticleUpdate.Position == nil then
+						ValueParticleUpdate.Position = particle.position
 						
-						if Value.SecondIcon == true and Value.SecondTexture == nil then
-							--Value.SecondTexture = "minimap_heroicon_" .. NPC.GetUnitName(Value.entity)
-							Value.SecondTexture = Hero.GetIcon(Value.entity)
-							Value.SecondIndex = MiniMap.AddIcon(nil, Value.SecondTexture, Value.Position, 255, 255, 255, 255, 0, 1200)
+						if ValueParticleUpdate.SecondIcon == true and ValueParticleUpdate.SecondTexture == nil then
+							ValueParticleUpdate.SecondTexture = Hero.GetIcon(ValueParticleUpdate.entity)
+							ValueParticleUpdate.SecondIndex = MiniMap.AddIcon(nil, ValueParticleUpdate.SecondTexture, ValueParticleUpdate.Position, 255, 255, 255, 255, 0, 1200)
 							
-							if Value.SecondIndex > -1 then
-								Value.SecondIndex = Value.SecondIndex * -1
+							if ValueParticleUpdate.SecondIndex > -1 then
+								ValueParticleUpdate.SecondIndex = ValueParticleUpdate.SecondIndex * -1
 							end
 						end
 					end
@@ -261,42 +257,54 @@ function ShowTeleport.OnParticleUpdate(particle)
 			end
 			
 			if particle.controlPoint == 2 then
-				if ParticleManager.GetParticleUpdateTwo[Value.name] then
-					if Value.ColorR == nil then
-						Value.ColorR = FunctionFloor(255 * particle.position:GetX())
+				if ParticleManager[3][3][ValueParticleUpdate.name] then
+					if ValueParticleUpdate.ColorR == nil then
+						ValueParticleUpdate.ColorR = FunctionFloor(255 * particle.position:GetX())
 					end
 					
-					if Value.ColorG == nil then
-						Value.ColorG = FunctionFloor(255 * particle.position:GetY())
+					if ValueParticleUpdate.ColorG == nil then
+						ValueParticleUpdate.ColorG = FunctionFloor(255 * particle.position:GetY())
 					end
 					
-					if Value.ColorB == nil then
-						Value.ColorB = FunctionFloor(255 * particle.position:GetZ())
+					if ValueParticleUpdate.ColorB == nil then
+						ValueParticleUpdate.ColorB = FunctionFloor(255 * particle.position:GetZ())
+					end
+					
+					if ValueParticleUpdate.SecondIcon == true and ValueParticleUpdate.SecondTexture == nil then
+						ValueParticleUpdate.SecondTexture = Hero.GetIcon(ValueParticleUpdate.entity)
+						ValueParticleUpdate.SecondIndex = MiniMap.AddIcon(nil, ValueParticleUpdate.SecondTexture, ValueParticleUpdate.Position, 255, 255, 255, 255, 0, 1200)
+							
+						if ValueParticleUpdate.SecondIndex > -1 then
+							ValueParticleUpdate.SecondIndex = ValueParticleUpdate.SecondIndex * -1
+						end
 					end
 				end
 			end
 			
 			if particle.controlPoint == 5 then
-				if ParticleManager.GetParticleUpdateFive[Value.name] then
-					if Value.Position == nil then
-						Value.Position = particle.position
+				if ParticleManager[3][4][ValueParticleUpdate.name] then
+					if ValueParticleUpdate.Position == nil then
+						ValueParticleUpdate.Position = particle.position
 					end
 				end
 			end
         end
-    end
+	end
 end
 
 function ShowTeleport.OnParticleDestroy(particle)
 	if Menu.IsEnabled(ShowTeleport.optionEnable) == false then return end
 	if myHero == nil then return end
 	
-	local Value = nil
+	ValueParticleDestroy = nil
 	
 	for i = #ParticleData, 1, -1 do
-		Value = ParticleData[i]
+		ValueParticleDestroy = ParticleData[i]
 
-		if (Value ~= nil) and (particle.index == Value.index) then
+		if 
+			ValueParticleDestroy ~= nil
+			and particle.index == ValueParticleDestroy.index
+		then
 			ParticleData[i] = nil
 		end
     end
@@ -326,15 +334,11 @@ function ShowTeleport.OnUpdate()
 			myHero = Heroes.GetLocal()
 		end
 		
-		ValueOnDraw = nil
+		ValueOnDraw, ValueParticleUpdate, ValueParticleDestroy = nil, nil, nil
 		TempUnitName, xCoor, yCoor = nil, nil, nil
 		ShowTeleport.NeedInit = false
 		
-		Console.Print("\n================================================\n")
-		Console.Print("Script: Show Teleport | Callback: OnUpdate()\n")
-		Console.Print("Date & Time: " .. (os.date("%Y-%m-%d %I:%M %p")) .. " | Version: 0.4")
-		Console.Print("Job: Init variable")
-		Console.Print("================================================\n\n")
+		Console.Print("\n[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.5 ] Game started, init script done.\n\n")
 	end
 	
 	if myHero == nil then return end
@@ -360,7 +364,10 @@ function ShowTeleport.OnDraw()
 				if ValueOnDraw.DormantCheck == true then
 					if Entity.IsDormant(ValueOnDraw.entity) == true then
 						MiniMap.AddIconByName(ValueOnDraw.IconIndex, ValueOnDraw.Texture, ValueOnDraw.Position, ValueOnDraw.ColorR, ValueOnDraw.ColorG, ValueOnDraw.ColorB, 255, 0.1, 1200)
-								
+						
+						--[[
+							This is drawing world icon for example in teleport will draw image on ground when teleport from fog.
+						--]]
 						if Menu.IsEnabled(ShowTeleport.optionEnableWorldDraw) == true then
 							TempUnitName = NPC.GetUnitName(ValueOnDraw.entity)
 							xCoor, yCoor = Renderer.WorldToScreen(ValueOnDraw.Position)
@@ -378,10 +385,13 @@ function ShowTeleport.OnDraw()
 								
 					end
 				else
+					--[[
+						This is draw hero icon for example furion skill 2.
+					--]]
 					MiniMap.AddIconByName(ValueOnDraw.IconIndex, ValueOnDraw.Texture, ValueOnDraw.Position, ValueOnDraw.ColorR, ValueOnDraw.ColorG, ValueOnDraw.ColorB, 255, 0.1, 1200)
 							
 					if ValueOnDraw.SecondIcon == true then
-						MiniMap.AddIcon(ValueOnDraw.SecondIndex, ValueOnDraw.SecondTexture, ValueOnDraw.Position, 255, 255, 255, 255, 0.1, 1000)
+						MiniMap.AddIcon(ValueOnDraw.SecondIndex, ValueOnDraw.SecondTexture, ValueOnDraw.Position, 255, 255, 255, 255, 0.1, 900)
 					end
 				end
 			end
