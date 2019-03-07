@@ -1,5 +1,5 @@
 -------------------------------------
---- ShowTeleport.lua Version 0.6a ---
+--- ShowTeleport.lua Version 0.6b ---
 -------------------------------------
 
 local ShowTeleport = {
@@ -119,7 +119,7 @@ function ShowTeleport.OnScriptLoad()
 	TempUnitName, xCoor, yCoor = nil, nil, nil
 	ShowTeleport.NeedInit = true
 	
-	Console.Print("[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.6a ] Script load.")
+	Console.Print("[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.6b ] Script load.")
 end
 
 function ShowTeleport.OnGameEnd()
@@ -136,7 +136,7 @@ function ShowTeleport.OnGameEnd()
 	
 	collectgarbage("collect")
 	
-	Console.Print("[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.6a ] Game end. Reset all variable.")
+	Console.Print("[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.6b ] Game end. Reset all variable.")
 end
 
 function ShowTeleport.IsUniqueParticle(particle)
@@ -232,12 +232,16 @@ function ShowTeleport.OnParticleUpdate(particle)
 			if ValueParticleUpdate.Position == nil then
 				ParticleData[tostring(particle.index)].Position = particle.position
 						
-				if ValueParticleUpdate.SecondIcon == true and ValueParticleUpdate.SecondTexture == nil then
+				if 
+					ValueParticleUpdate.SecondIcon == true 
+					and ValueParticleUpdate.SecondTexture == nil 
+				then
 					ParticleData[tostring(particle.index)].SecondTexture = Hero.GetIcon(ValueParticleUpdate.entity)
-					ParticleData[tostring(particle.index)].SecondIndex = MiniMap.AddIcon(nil, ValueParticleUpdate.SecondTexture, ParticleData[tostring(particle.index)].Position, 255, 255, 255, 255, 0, 1200)
+					
+					ParticleData[tostring(particle.index)].SecondIndex = MiniMap.AddIcon(nil, ValueParticleUpdate.SecondTexture, particle.position, 255, 255, 255, 255, 0, 1200)
 							
 					if ValueParticleUpdate.SecondIndex > -1 then
-						ParticleData[tostring(particle.index)].SecondIndex = ParticleData[tostring(particle.index)].SecondIndex * -1
+						ParticleData[tostring(particle.index)].SecondIndex = ValueParticleUpdate.SecondIndex * -1
 					end
 				end
 			end
@@ -258,9 +262,13 @@ function ShowTeleport.OnParticleUpdate(particle)
 				ParticleData[tostring(particle.index)].ColorB = FunctionFloor(255 * particle.position:GetZ())
 			end
 					
-			if ValueParticleUpdate.SecondIcon == true and ValueParticleUpdate.SecondTexture == nil then
+			if 
+				ValueParticleUpdate.SecondIcon == true 
+				and ValueParticleUpdate.SecondTexture == nil
+			then
 				ParticleData[tostring(particle.index)].SecondTexture = Hero.GetIcon(ValueParticleUpdate.entity)
-				ParticleData[tostring(particle.index)].SecondIndex = MiniMap.AddIcon(nil, ValueParticleUpdate.SecondTexture, ValueParticleUpdate.Position, 255, 255, 255, 255, 0, 1200)
+				
+				ParticleData[tostring(particle.index)].SecondIndex = MiniMap.AddIcon(nil, ValueParticleUpdate.SecondTexture, particle.position, 255, 255, 255, 255, 0, 1200)
 							
 				if ValueParticleUpdate.SecondIndex > -1 then
 					ParticleData[tostring(particle.index)].SecondIndex = ValueParticleUpdate.SecondIndex * -1
@@ -312,7 +320,7 @@ function ShowTeleport.OnDraw()
 		
 		ShowTeleport.NeedInit = false
 		
-		Console.Print("[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.6a ] Game started, init script done.")
+		Console.Print("[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.6b ] Game started, init script done.")
 	end
 	
 	if myHero == nil then return end
