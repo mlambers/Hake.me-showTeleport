@@ -1,6 +1,6 @@
--------------------------------------
---- ShowTeleport.lua Version 0.6b ---
--------------------------------------
+------------------------------------
+--- ShowTeleport.lua Version 0.7 ---
+------------------------------------
 
 local ShowTeleport = {
 	optionEnable = Menu.AddOption({"mlambers", "Minimap Teleport Info"}, "1. Enable", "Enable this script."),
@@ -108,7 +108,7 @@ local ParticleManager = {
 local ParticleData = {}
 
 function ShowTeleport.OnScriptLoad()
-	for k, v in pairs( ParticleData ) do
+	for k in pairs( ParticleData ) do
 		ParticleData[ k ] = nil
 	end
 
@@ -119,11 +119,11 @@ function ShowTeleport.OnScriptLoad()
 	TempUnitName, xCoor, yCoor = nil, nil, nil
 	ShowTeleport.NeedInit = true
 	
-	Console.Print("[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.6b ] Script load.")
+	Console.Print("[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.7 ] Script load.")
 end
 
 function ShowTeleport.OnGameEnd()
-	for k, v in pairs( ParticleData ) do
+	for k in pairs( ParticleData ) do
 		ParticleData[ k ] = nil
 	end
 
@@ -136,7 +136,7 @@ function ShowTeleport.OnGameEnd()
 	
 	collectgarbage("collect")
 	
-	Console.Print("[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.6b ] Game end. Reset all variable.")
+	Console.Print("[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.7 ] Game end. Reset all variable.")
 end
 
 function ShowTeleport.IsUniqueParticle(particle)
@@ -303,14 +303,23 @@ end
 
 function ShowTeleport.OnDraw()
 	if Menu.IsEnabled(ShowTeleport.optionEnable) == false then return end
-	if Engine.IsInGame() == false then return end
 	
-	if myHero == nil then
-		myHero = Heroes.GetLocal() or nil
+	if
+		Engine.IsInGame() == false
+		or GameRules.GetGameState() < 4 
+		or GameRules.GetGameState() > 5
+	then
+		return
+	end
+	
+	if myHero == nil or myHero ~= Heroes.GetLocal() then
+		myHero = Heroes.GetLocal()
+		
+		return
 	end
 	
 	if ShowTeleport.NeedInit == true then
-		for k, v in pairs( ParticleData ) do
+		for k in pairs( ParticleData ) do
 			ParticleData[ k ] = nil
 		end
 		
@@ -320,10 +329,8 @@ function ShowTeleport.OnDraw()
 		
 		ShowTeleport.NeedInit = false
 		
-		Console.Print("[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.6b ] Game started, init script done.")
+		Console.Print("[" .. os.date("%I:%M:%S %p") .. "] - - [ ShowTeleport.lua ] [ Version 0.7 ] Game started, init script done.")
 	end
-	
-	if myHero == nil then return end
 	
 	for k, v in pairs( ParticleData ) do
 	
